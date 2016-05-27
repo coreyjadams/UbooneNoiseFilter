@@ -3,8 +3,8 @@
 #
 
 # specific names for this package
-DICT  = DisplayTool_RawViewerCint
-SHLIB = libDisplayTool_RawViewer.so
+DICT  = uboone_NoiseFilterCint
+SHLIB = libub_noise_filter_NoiseFilter.so
 SOURCES = $(filter-out $(DICT).cxx, $(wildcard *.cxx))
 FMWK_HEADERS = LinkDef.h $(DICT).h
 HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))

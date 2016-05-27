@@ -1,3 +1,7 @@
+# Misc larlite files:
+*Cint.cxx
+.depend
+
 # Compiled Object files
 *.slo
 *.lo
