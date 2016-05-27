@@ -30,13 +30,48 @@ float getMode(const std::vector<float> & _input, float lowbin, float highbin, in
  */
 float getMedian( std::vector<float> & _input);
 
-
+/**
+ * @brief Return the mean of a vector
+ * @details Calculates the mean of the vector provided in a totally unsurprising way.
+ *          WILL CHANGE THE INPUT VECTOR!
+ * 
+ * @param r vector of floats
+ * @return The mean of above vector
+ */
 float getMean(const std::vector<float> &);
 
+
+/**
+ * @brief Get the correlation of two vectors
+ * @details Checks that each vector is of the same size, then uses the overloaded method
+ *          of the same name to do the correlation calculation
+ * 
+ * @param _input1 second vector of floats
+ * @param _input2 second vector of floats
+ * @return The correlation value, between -1 and 1
+ */
 float getCorrelation(const std::vector<float> & _input1, const std::vector<float> & _input2);
 
+
+/**
+ * @brief Get the correlation of two arrays
+ * @details Compute the correlation of two arrays of length N.  Memory allocation
+ *          is not handled here, nor size checking.
+ * 
+ * @param _input1 second vector of floats
+ * @param _input2 second vector of floats
+ * @param N Number of elements in each vector
+ * @return The correlation value, between -1 and 1
+ */
 float getCorrelation(const float * _input1, const float * _input2, unsigned int N);
 
+
+/**
+ * @brief Detector Properties interface for the noise filter
+ * @details In the entire noise filter framework, this is really the only 
+ *          framework (larlite, etc.) dependent class.  This is needed
+ *          to get the length of wires, which is important in harmonic noise calculations.
+ */
 class detPropFetcher {
 
 public:
@@ -48,12 +83,41 @@ public:
   double wire_length(unsigned int plane, unsigned int wire);
   double wire_scale(unsigned int plane, unsigned int wire);
 
+  /**
+   * @brief Get the start and end wires of mother board blocks on each plane
+   * @details Vector of start and end wires for each motherboard block is returned.
+   *          In general, use these boundaries in the typical c++ way:  for block i,
+   *          use a loop over wires from result[i] to < result[i+1]
+   * 
+   * @param plane Plane 0, 1, or 2
+   */
   const std::vector<float> & correlated_noise_blocks(int plane) const {
     return _correlated_noise_blocks.at(plane);
   }
 
+  /**
+   * @brief return the motherboard on the same service board in this plane
+   * @details Gives the mother board that should be most highly correlated
+   *          to the input motherboard
+   * 
+   * @param plane 0, 1, or 2
+   * @param block Motherboard (or index of block of wires)
+   * 
+   * @return The same-service-board motherboard (or index of block of wires)
+   */
   int same_plane_pair(int plane, int block);
 
+  /**
+   * @brief Get the list of (plane, block) within a service board
+   * @details Returns a vector of vector of ints, size 3xN.  Input a plane and block
+   *          and the return will have all the motherboard blocks on the same service board.
+   *          Generally this is 3x2, but the vertical motherboards in uboone are unique.
+   * 
+   * @param plane 0, 1 or 2
+   * @param block Motherboard (or index of block of wires)
+   * 
+   * @return vector of correlated motherboards to input
+   */
   std::vector<std::vector<float> > service_board_block(int plane, int block);
 
 private:
@@ -97,9 +161,10 @@ private:
 };
 
 
+//Used in classifying which wires are behaving in different ways
 enum wireStatus {kNormal, kDead, kHighNoise, kChirping, kNStatus};
 
-
+// Used to keep track of when chirping starts and stops on a wire
 class chirp_info {
 
 public:

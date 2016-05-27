@@ -74,12 +74,32 @@ public:
                              int plane,
                              int _n_time_ticks_data);
 
-
+  /**
+   * @brief Fix correlated noise waveforms by doing comparisons between motherboards in
+   *        the same plane
+   * @details Compares the two motherboards next to each other that are closely
+   *          correlated. For medium angle tracks, there can be a "shadow"
+   *          that comes from too many hits biasing the median.  This attempts
+   *          to correct that if the other motherboard is OK.
+   *
+   * @param _plane_data The vector of floats for this plane.
+   * @param plane Plane number, 0, 1, or 2
+   * @param _n_time_ticks_data Length of wire ticks
+   */
   void fix_medium_angle_tracks(float * _plane_data,
                                int plane,
                                int _n_time_ticks_data);
 
+
+  /**
+   * @brief Call this function to do corrections to the correlated noise waveforms
+   * @details Internally, calls find_correlated_noise_errors for each wire block
+   *          to see if any regions are removing tracks and address it.
+   */
   void fix_correlated_noise_errors();
+
+
+  void find_correlated_noise_errors(int, int);
 
 
   /**
@@ -110,18 +130,25 @@ public:
 
 
 
-
+  /**
+   * @brief Give the correlated noise filter knowledge of the wire statuses
+   *
+   * @param _ptr Pointer to wire status information from the main noise filter
+   */
   void set_wire_status_pointer(std::vector<std::vector<wireStatus> > * _ptr) {
     _wire_status_by_plane = _ptr;
   }
 
-
+  /**
+   * @brief Give the correlated noise filter knowledge of the wire chirp info
+   *
+   * @param _ptr Pointer to wire chirp information from the main noise filter
+   */
   void set_chirp_info_pointer(std::vector<std::map<int, ::ub_noise_filter::chirp_info> >  * _ptr) {
     _chirp_info_ptr = _ptr;
   }
 
 
-  void find_correlated_noise_errors(int, int);
 
 
 public:
@@ -143,9 +170,6 @@ public:
 
 private:
 
-  /*some private functions here are used in correcting the correlated noise waveforms*/
-
-
 
   // All of the detector properties are encapsulated in this object
   // This allows larlite <-> larsoft transitions to be a little less painful
@@ -166,8 +190,16 @@ private:
   std::vector<std::vector<wireStatus> >  * _wire_status_by_plane;
 
 
+  /*  _____ ___  ____   ___
+     |_   _/ _ \|  _ \ / _ \
+       | || | | | | | | | | |
+       | || |_| | |_| | |_| |
+       |_| \___/|____/ \___/
 
-  // Some constants used to spot regions where tracks are parallel to the wires:
+  Some constants used to spot regions where tracks are parallel to the wires:
+  These should be externally tunable, if they are kept
+  Another way to do this correction might be better
+  */
   std::vector<float> rms_minimum = {30.0, 50.0, 50.0};
   std::vector<int> windowsize = {100, 50, 50};
 

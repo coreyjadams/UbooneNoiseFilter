@@ -43,12 +43,10 @@
  * provide access to these metrics for a calling class to save if desired.
  *
  * @author cadams
- * @author mrmooney?
+ * @author mrmooney
  */
 
-/** \addtogroup RawViewer
 
-    @{*/
 #ifndef UBOONENOISEFILTER_H
 #define UBOONENOISEFILTER_H
 
