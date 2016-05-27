@@ -287,7 +287,7 @@ private:
 
 };
 
-} // evd
+} // ub_noise_filter
 
 
 #endif

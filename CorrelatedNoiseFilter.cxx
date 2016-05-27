@@ -103,6 +103,7 @@ void CorrelatedNoiseFilter::build_noise_waveforms(
   // First build a guess at the harmonic noise waveforms:
   build_harmonic_noise_waveform(_plane_data, plane, _n_time_ticks_data);
 
+  // Build uncorrected correlated noise waveforms
   build_coherent_noise_waveforms(_plane_data, plane, _n_time_ticks_data);
 
 
@@ -115,6 +116,7 @@ void CorrelatedNoiseFilter::build_coherent_noise_waveforms(
 {
 
 
+  // Loop over each block and get the median tick within that block
   for (size_t i_block = 0;
        i_block < _detector_properties_interface.correlated_noise_blocks(plane).size() - 1;
        i_block ++) {
@@ -134,19 +136,16 @@ void CorrelatedNoiseFilter::build_coherent_noise_waveforms(
       _median_accumulator.clear();
       _median_accumulator.reserve(block_wire_end - block_wire_start);
       for (int wire = block_wire_start; wire < block_wire_end ; wire ++) {
+        // Only use wires that are Normal in calculating the noise.
         if (_wire_status_by_plane->at(plane)[wire] == kNormal) {
           offset = tick + wire * _n_time_ticks_data;
-          // std::cout << "Accessing at wire " << wire << ", offset " << offset << std::endl;
           float scale = _detector_properties_interface.wire_scale(plane, wire);
           _median_accumulator.push_back(_plane_data[offset] -
                                         scale * _harmonicNoiseWaveforms[plane][tick]);
-          // std::cout << "Success!" << std::endl;
 
 
         }
       }
-
-      // std::cout << "_median_accumulator.size() " << _median_accumulator.size() << std::endl;
 
       // Now find the median of this tick:
       if (_median_accumulator.size() < 8) {
@@ -224,7 +223,6 @@ void CorrelatedNoiseFilter::build_harmonic_noise_waveform(
     }
 
     // Get the most probable value:
-    // harmonic_noise.at(tick) = getMode(values, lowVal, highVal, 200);
     harmonic_noise.at(tick) = getMedian(values);
   }
 
@@ -265,15 +263,10 @@ void CorrelatedNoiseFilter::fix_medium_angle_tracks(float * _plane_data,
       continue;
     }
 
-    // auto & waveform1 = ;
-    // auto & waveform2 = _correlatedNoiseWaveforms[plane][matched_block];
-
     // For each block, get the correlation of this block to the corresponding block
     // on the other cross correlated waveforms
 
     // keep track of which windows need to be investigated:
-
-
     std::vector<int> windows_to_investigate;
     std::vector<float> correlations;
 
@@ -321,17 +314,14 @@ void CorrelatedNoiseFilter::fix_medium_angle_tracks(float * _plane_data,
       for (int tick = local_windowsize * window; tick < local_windowsize * (window + 1); tick ++) {
         _median_accumulator.clear();
         _median_accumulator.resize(5);
-        // _median_accumulator.reserve(wire_end - wire_start);
         for (int wire = wire_start; wire < wire_end ; wire ++) {
           int n = (5 * (wire - wire_start)) / (wire_end  - wire_start);
 
           if (_wire_status_by_plane->at(plane)[wire] == kNormal) {
             offset = tick + wire * _n_time_ticks_data;
-            // std::cout << "Accessing at wire " << wire << ", offset " << offset << std::endl;
             float scale = _detector_properties_interface.wire_scale(plane, wire);
             _median_accumulator.at(n).push_back(_plane_data[offset] -
                                                 scale * _harmonicNoiseWaveforms[plane][tick]);
-            // std::cout << "Success!" << std::endl;
 
 
           }
@@ -412,12 +402,6 @@ void CorrelatedNoiseFilter::find_correlated_noise_errors(int target_plane, int t
 
   // Let's just look at one block to see how the block making works
 
-
-
-
-
-  // int target_plane = 0;
-  // int target_block = 22;
 
   auto correlated_blocks
     = _detector_properties_interface.service_board_block(target_plane, target_block);
@@ -517,21 +501,21 @@ void CorrelatedNoiseFilter::find_correlated_noise_errors(int target_plane, int t
         continue;
       }
 
-      std::cout << "  Examine ticks " << i_window*windowsize[target_plane]
-                << " to " << (i_window + 1)*(windowsize[target_plane])
-                << " (strength == " << windows_to_investigate.at(i_window) << ")"
-                << std::endl;
+      // std::cout << "  Examine ticks " << i_window*windowsize[target_plane]
+      //           << " to " << (i_window + 1)*(windowsize[target_plane])
+      //           << " (strength == " << windows_to_investigate.at(i_window) << ")"
+      //           << std::endl;
 
-      std::cout << "    RMS  of previous window: " << prev_rms << "\n"
-                << "    RMS  of this window: " << rms << "\n"
-                << "    RMS  of next window: " << next_rms << "\n";
+      // std::cout << "    RMS  of previous window: " << prev_rms << "\n"
+      //           << "    RMS  of this window: " << rms << "\n"
+      //           << "    RMS  of next window: " << next_rms << "\n";
 
       if (
         ( i_window != 0 && rms > 3 * prev_rms) ||
         ( i_window != n_windows - 1 && rms > 3 * next_rms)
       ) {
         windows_to_fix.push_back(i_window);
-        std::cout << "----this window tagged to be fixed." << std::endl;
+        // std::cout << "----this window tagged to be fixed." << std::endl;
       }
 
     }
@@ -623,12 +607,11 @@ void CorrelatedNoiseFilter::find_correlated_noise_errors(int target_plane, int t
       continue;
     }
 
-    // Now that the best area has been selected, use it.
-    // First pass, just replace it entirely.
-    std::cout << "Replacing window " << i_window << " with values from "
-              << "( " << best_plane << ", " << best_block << ")"
-              << ", correlation: " << best_correlation
-              << std::endl;
+    // // Now that the best area has been selected, use it.
+    // std::cout << "Replacing window " << i_window << " with values from "
+    //           << "( " << best_plane << ", " << best_block << ")"
+    //           << ", correlation: " << best_correlation
+    //           << std::endl;
 
     float val1 = 0.0;
     float val2 = 0.0;
@@ -637,6 +620,18 @@ void CorrelatedNoiseFilter::find_correlated_noise_errors(int target_plane, int t
               * _correlatedNoiseWaveforms[best_plane][best_block][i_window * windowsize[target_plane] + tick];
       val2 += _correlatedNoiseWaveforms[target_plane][target_block][i_window * windowsize[target_plane] + tick];
     }
+
+    /*  _____ ___  ____   ___
+       |_   _/ _ \|  _ \ / _ \
+         | || | | | | | | | | |
+         | || |_| | |_| | |_| |
+         |_| \___/|____/ \___/
+  
+    The way the correlations are scaled should really be looked at more carefully.
+
+    Way, way more carefully.
+
+    */
 
     float alpha = val1 / val2;
 

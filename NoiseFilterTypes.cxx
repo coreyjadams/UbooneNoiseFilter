@@ -5,6 +5,8 @@
 
 namespace ub_noise_filter {
 
+
+
 float getCorrelation(const std::vector<float> & _input1, const std::vector<float> & _input2)
 {
 
@@ -16,6 +18,8 @@ float getCorrelation(const std::vector<float> & _input1, const std::vector<float
 
 }
 
+
+// Uses a pretty standard algorithm for computing the correlation
 float getCorrelation(const float * _input1, const float * _input2, unsigned int N) {
 
   float rms_1  = 0.0;
@@ -47,7 +51,8 @@ float getCorrelation(const float * _input1, const float * _input2, unsigned int 
 }
 
 
-
+// Bins values and returns most populated bin
+// Not really used much but might be useful
 float getMode(const std::vector<float> & _input,
               float lowbin,
               float highbin,
@@ -99,6 +104,9 @@ float getMode(const std::vector<float> & _input,
   return (upperBounds[max_bin + 1] + lowerBounds[max_bin]) / 2;
 }
 
+
+// Get the median of the vector using a partial sort algorithm.
+// WILL CHANGE THE INPUT VECTOR
 float getMedian( std::vector<float> & _input) {
 
   if (_input.size() == 0){
@@ -126,6 +134,8 @@ float getMedian( std::vector<float> & _input) {
   return 0.0;
 }
 
+
+// No surprises here
 float getMean(const std::vector<float> & _input) {
   if (_input.size() == 0) {
     std::cerr << "ERROR: can't compute mean of zero size vector." << std::endl;
