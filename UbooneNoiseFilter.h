@@ -53,6 +53,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <numeric>
 #include <map>
 
 #include "NoiseFilterTypes.h"
